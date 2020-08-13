@@ -1,0 +1,24 @@
+defmodule IntcodeComputerTest do
+  use ExUnit.Case
+  doctest IntcodeComputer
+
+  test "converts empty list to empty map" do
+    assert IntcodeComputer.to_map([]) == %{}
+  end
+
+  test "converts list to map" do
+    assert IntcodeComputer.to_map([5,6,6,8]) == %{0 => 5, 1 => 6, 2 => 6, 3 => 8}
+  end
+
+  test "converts empty map to empty list" do
+    assert IntcodeComputer.to_list(%{}) == []
+  end
+
+  test "converts map to list" do
+    assert IntcodeComputer.to_list(%{0 => 5, 1 => 6, 2 => 6, 3 => 8}) == [5,6,6,8]
+  end
+
+  test "calculates correct result for simple addition program" do
+    assert IntcodeComputer.run([1,0,0,0,99]) == [2,0,0,0,99]
+  end
+end
