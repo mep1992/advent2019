@@ -1,13 +1,21 @@
 defmodule IntcodeComputer do
   def run(program) do
     map_program = to_map(program)
+    opcode = Map.fetch!(map_program, 0)
     param1_pos = Map.fetch!(map_program, 1)
     param2_pos = Map.fetch!(map_program, 2)
     result_pos = Map.fetch!(map_program, 3)
 
-    result = Map.put(map_program, result_pos, Map.fetch!(map_program, param1_pos) + Map.fetch!(map_program, param2_pos))
+    result = Map.put(map_program, result_pos, calculate(opcode, Map.fetch!(map_program, param1_pos), Map.fetch!(map_program, param2_pos)))
 
     to_list(result)
+  end
+
+  defp calculate(opcode, param1, param2) do
+    case opcode do
+      1 -> param1 + param2
+      2 -> param1 * param2
+    end
   end
 
   def to_list(map) do

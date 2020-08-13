@@ -21,4 +21,8 @@ defmodule IntcodeComputerTest do
   test "calculates correct result for simple addition program" do
     assert IntcodeComputer.run([1,0,0,0,99]) == [2,0,0,0,99]
   end
+
+  test "calculates correct result for simple multiplication program" do
+    assert IntcodeComputer.run([2,3,0,3,99]) == [2,3,0,6,99]
+  end
 end
