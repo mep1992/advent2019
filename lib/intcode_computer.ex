@@ -1,14 +1,26 @@
 defmodule IntcodeComputer do
   def run(program) do
     map_program = to_map(program)
-    opcode = Map.fetch!(map_program, 0)
-    param1_pos = Map.fetch!(map_program, 1)
-    param2_pos = Map.fetch!(map_program, 2)
-    result_pos = Map.fetch!(map_program, 3)
+    opcode_indices = for i <- Map.keys(map_program), rem(i, 4) == 0, do: i
 
-    result = Map.put(map_program, result_pos, calculate(opcode, Map.fetch!(map_program, param1_pos), Map.fetch!(map_program, param2_pos)))
+    Enum.reduce(opcode_indices, map_program, fn idx, map_program -> calculate_index(idx, map_program) end) |> to_list()
+  end
 
-    to_list(result)
+  defp calculate_index(opcode_index, map_program) do
+    opcode = Map.fetch!(map_program, opcode_index)
+    if opcode != 99 do
+      param1_pos = Map.fetch!(map_program, opcode_index + 1)
+      param2_pos = Map.fetch!(map_program, opcode_index + 2)
+      result_pos = Map.fetch!(map_program, opcode_index + 3)
+
+      Map.put(
+        map_program,
+        result_pos,
+        calculate(opcode, Map.fetch!(map_program, param1_pos), Map.fetch!(map_program, param2_pos))
+      )
+    else
+      map_program
+    end
   end
 
   defp calculate(opcode, param1, param2) do
