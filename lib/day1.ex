@@ -1,6 +1,6 @@
 defmodule Day1 do
   def part1() do
-    module_masses = File.read!("lib/input.txt")
+    module_masses = File.read!("lib/day1_input.txt")
 
     String.split(module_masses, "\n")
     |> Enum.map(&String.to_integer(&1))
@@ -8,7 +8,7 @@ defmodule Day1 do
   end
 
   def part2() do
-    module_masses = File.read!("lib/input.txt")
+    module_masses = File.read!("lib/day1_input.txt")
 
     String.split(module_masses, "\n")
     |> Enum.map(&String.to_integer(&1))
@@ -16,5 +16,6 @@ defmodule Day1 do
   end
 end
 
+IO.puts("Day1 Output")
 IO.inspect(Day1.part1(), label: "part1")
 IO.inspect(Day1.part2(), label: "part2")
