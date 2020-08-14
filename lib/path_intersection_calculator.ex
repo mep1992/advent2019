@@ -1,10 +1,12 @@
 defmodule PathIntersectionCalculator do
-  def run(_path1, _path2) do
-    #    TODO
+  def run(path1, path2) do
+    MapSet.intersection(coordinates(path1), coordinates(path2)) |> MapSet.delete({0, 0})
   end
 
-  def coordinate_set(path) do
-    path |> Enum.reduce([{0, 0}], fn section, coordinates -> enumerate(section, coordinates) end)
+  def coordinates(path) do
+    path
+    |> Enum.reduce([{0, 0}], fn section, coordinates -> enumerate(section, coordinates) end)
+    |> MapSet.new()
   end
 
   defp enumerate(section, coordinates) do
