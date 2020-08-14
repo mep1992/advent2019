@@ -1,5 +1,5 @@
 defmodule PathIntersectionCalculator do
-  def run(path1, path2) do
+  def min_intersection_distance(path1, path2) do
     MapSet.intersection(coordinates(path1), coordinates(path2))
     |> MapSet.delete({0, 0})
     |> Enum.map(fn coordinate -> distance_from_origin(coordinate) end)

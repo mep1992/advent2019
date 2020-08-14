@@ -4,7 +4,7 @@ defmodule Day3 do
       File.read!("lib/day3_input.txt")
       |> String.split("\n")
 
-    PathIntersectionCalculator.run(String.split(wire_path1, ","), String.split(wire_path2, ","))
+    PathIntersectionCalculator.min_intersection_distance(String.split(wire_path1, ","), String.split(wire_path2, ","))
   end
 end
 
