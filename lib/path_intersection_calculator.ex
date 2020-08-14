@@ -1,6 +1,13 @@
 defmodule PathIntersectionCalculator do
   def run(path1, path2) do
-    MapSet.intersection(coordinates(path1), coordinates(path2)) |> MapSet.delete({0, 0})
+    MapSet.intersection(coordinates(path1), coordinates(path2))
+    |> MapSet.delete({0, 0})
+    |> Enum.map(fn coordinate -> distance_from_origin(coordinate) end)
+    |> Enum.min()
+  end
+
+  def distance_from_origin({x, y}) do
+    abs(0 - x) + abs(0 - y)
   end
 
   def coordinates(path) do
@@ -19,9 +26,7 @@ defmodule PathIntersectionCalculator do
     coordinates ++ new_coordinates(direction, magnitude, ref_coordinates)
   end
 
-  defp new_coordinates(direction, magnitude, ref_coordinates) do
-    {ref_x, ref_y} = ref_coordinates
-
+  defp new_coordinates(direction, magnitude, {ref_x, ref_y}) do
     case direction do
       "R" -> for i <- 1..magnitude, do: {ref_x + i, ref_y}
       "L" -> for i <- 1..magnitude, do: {ref_x - i, ref_y}
