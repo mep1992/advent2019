@@ -1,30 +1,30 @@
 defmodule IntcodeComputer do
   def run(program) do
-    opcode_indices = for i <- 0..(Enum.count(program) - 1), rem(i, 4) == 0, do: i
+    opcode_addrs = for i <- 0..(Enum.count(program) - 1), rem(i, 4) == 0, do: i
 
     Enum.reduce_while(
-      opcode_indices,
+      opcode_addrs,
       program,
-      fn idx, program -> calculate_index(idx, program) end
+      fn addr, program -> process_instruction(addr, program) end
     )
   end
 
-  defp calculate_index(opcode_index, program) do
-    opcode = Enum.at(program, opcode_index)
+  defp process_instruction(instruction_pointer, program) do
+    opcode = Enum.at(program, instruction_pointer)
 
-    if opcode_index + 3 < Enum.count(program) and opcode != 99 do
-      param1_pos = Enum.at(program, opcode_index + 1)
-      param2_pos = Enum.at(program, opcode_index + 2)
-      result_pos = Enum.at(program, opcode_index + 3)
+    if instruction_pointer + 3 < Enum.count(program) and opcode != 99 do
+      param1_addr = Enum.at(program, instruction_pointer + 1)
+      param2_addr = Enum.at(program, instruction_pointer + 2)
+      result_addr = Enum.at(program, instruction_pointer + 3)
 
       new_program =
         List.replace_at(
           program,
-          result_pos,
+          result_addr,
           calculate(
             opcode,
-            Enum.at(program, param1_pos),
-            Enum.at(program, param2_pos)
+            Enum.at(program, param1_addr),
+            Enum.at(program, param2_addr)
           )
         )
 
