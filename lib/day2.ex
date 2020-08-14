@@ -4,6 +4,8 @@ defmodule Day2 do
 
     String.split(module_masses, ",")
     |> Enum.map(&String.to_integer(&1))
+    |> List.replace_at(1, 12)
+    |> List.replace_at(2, 2)
     |> IntcodeComputer.run()
   end
 end

@@ -1,30 +1,34 @@
 defmodule IntcodeComputer do
   def run(program) do
     map_program = to_map(program)
-                  |> Map.put(1, 12)
-                  |> Map.put(2, 2)
     ordered_indices = Map.keys(map_program) |> Enum.sort()
     opcode_indices = for i <- ordered_indices, rem(i, 4) == 0, do: i
 
-    IO.inspect(map_program, label: "map_program", limit: :infinity)
-    IO.inspect(opcode_indices, label: "opcode_indices", limit: :infinity)
-
-    Enum.reduce_while(opcode_indices, map_program, fn idx, map_program -> calculate_index(idx, map_program) end)
+    Enum.reduce_while(opcode_indices, map_program, fn idx, map_program ->
+      calculate_index(idx, map_program)
+    end)
     |> to_list()
   end
 
   defp calculate_index(opcode_index, map_program) do
     opcode = Map.fetch!(map_program, opcode_index)
-    if opcode_index + 3 < Enum.count(map_program) and opcode != 99   do
+
+    if opcode_index + 3 < Enum.count(map_program) and opcode != 99 do
       param1_pos = Map.fetch!(map_program, opcode_index + 1)
       param2_pos = Map.fetch!(map_program, opcode_index + 2)
       result_pos = Map.fetch!(map_program, opcode_index + 3)
 
-      new_map_program = Map.put(
-        map_program,
-        result_pos,
-        calculate(opcode, Map.fetch!(map_program, param1_pos), Map.fetch!(map_program, param2_pos))
-      )
+      new_map_program =
+        Map.put(
+          map_program,
+          result_pos,
+          calculate(
+            opcode,
+            Map.fetch!(map_program, param1_pos),
+            Map.fetch!(map_program, param2_pos)
+          )
+        )
+
       {:cont, new_map_program}
     else
       {:halt, map_program}
