@@ -1,43 +1,42 @@
 defmodule IntcodeComputer do
   def run(program) do
-    opcode_addrs = for i <- 0..(Enum.count(program) - 1), rem(i, 4) == 0, do: i
-
-    Enum.reduce_while(
-      opcode_addrs,
-      program,
-      fn addr, program -> process_instruction(addr, program) end
-    )
+    process(0, program)
   end
 
-  defp process_instruction(instruction_pointer, program) do
+  def process(instruction_pointer, program) do
     opcode = Enum.at(program, instruction_pointer)
 
-    if instruction_pointer + 3 < Enum.count(program) and opcode != 99 do
-      param1_addr = Enum.at(program, instruction_pointer + 1)
-      param2_addr = Enum.at(program, instruction_pointer + 2)
-      result_addr = Enum.at(program, instruction_pointer + 3)
+    if opcode == 99 do
+      program
+    else
+      num_params = get_num_params(opcode)
+      param_addrs = for i <- 1..num_params, do: Enum.at(program, instruction_pointer + i)
+      param_values = Enum.map(param_addrs, fn addr -> Enum.at(program, addr) end)
+      result_addr = List.last(param_addrs)
 
       new_program =
         List.replace_at(
           program,
           result_addr,
-          calculate(
-            opcode,
-            Enum.at(program, param1_addr),
-            Enum.at(program, param2_addr)
-          )
+          calculate(opcode, param_values)
         )
 
-      {:cont, new_program}
-    else
-      {:halt, program}
+      process(instruction_pointer + num_params + 1, new_program)
     end
   end
 
-  defp calculate(opcode, param1, param2) do
+  defp get_num_params(opcode) do
     case opcode do
-      1 -> param1 + param2
-      2 -> param1 * param2
+      1 -> 3
+      2 -> 3
+      99 -> 0
+    end
+  end
+
+  defp calculate(opcode, param_values) do
+    case opcode do
+      1 -> Enum.at(param_values, 0) + Enum.at(param_values, 1)
+      2 -> Enum.at(param_values, 0) * Enum.at(param_values, 1)
     end
   end
 end
