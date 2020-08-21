@@ -2,6 +2,7 @@ defmodule IntcodeComputerTest do
   use ExUnit.Case
   doctest IntcodeComputer
 
+  @tag :wip
   test "calculates correct result for simple addition program" do
     assert IntcodeComputer.run([1, 0, 0, 0, 99]) == [2, 0, 0, 0, 99]
   end
