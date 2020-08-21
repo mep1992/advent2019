@@ -1,21 +1,24 @@
 defmodule IntcodeComputer do
-  def run(program, _input \\ nil) do
-    process(0, program)
+  def run(program, input \\ nil) do
+    process(program, 0, input, [])
   end
 
-  def process(instruction_pointer, program) do
+  def process(program, instruction_pointer, input, output) do
+    # IO.inspect(output, label: "output=")
     {opcode, param_values} = parse_instruction(program, instruction_pointer)
 
     if opcode == 99 do
-      program
+      {program, output}
     else
-      new_program = calculate(program, opcode, param_values)
-      process(instruction_pointer + Enum.count(param_values) + 1, new_program)
+      {new_program, new_output} = calculate(program, opcode, param_values, input, output)
+      process(new_program, instruction_pointer + Enum.count(param_values) + 1, input, new_output)
     end
   end
 
   defp parse_instruction(program, instruction_pointer) do
+    #    IO.puts("~~~~~~~~~~~~~~~~\n")
     # IO.inspect(instruction_pointer, label: "instruction_pointer=")
+    # IO.inspect(program, label: "program=")
 
     opcode = rem(Enum.at(program, instruction_pointer), 100)
     # IO.inspect(opcode, label: "opcode=")
@@ -72,12 +75,15 @@ defmodule IntcodeComputer do
     end
   end
 
-  defp calculate(program, opcode, param_values) do
+  defp calculate(program, opcode, param_values, input, output) do
+    # IO.inspect(output, label: "calc_output=")
     get_param = fn index -> Enum.at(param_values, index) end
 
     case opcode do
-      1 -> List.replace_at(program, get_param.(2), get_param.(0) + get_param.(1))
-      2 -> List.replace_at(program, get_param.(2), get_param.(0) * get_param.(1))
+      1 -> {List.replace_at(program, get_param.(2), get_param.(0) + get_param.(1)), output}
+      2 -> {List.replace_at(program, get_param.(2), get_param.(0) * get_param.(1)), output}
+      3 -> {List.replace_at(program, get_param.(0), input), output}
+      4 -> {program, output ++ [Enum.fetch!(program, get_param.(0))]}
     end
   end
 end

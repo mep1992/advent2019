@@ -18,6 +18,7 @@ defmodule Day2 do
         |> List.replace_at(1, noun)
         |> List.replace_at(2, verb)
         |> IntcodeComputer.run()
+        |> elem(0)
         |> List.first() == 19_690_720
       end
     )
