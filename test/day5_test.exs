@@ -3,6 +3,6 @@ defmodule Day5Test do
   doctest Day5
 
   test "calculates diagnostic code correctly" do
-    assert Day5.part1() |> List.last() == 14155342
+    assert Day5.part1() |> List.last() == 14_155_342
   end
 end
