@@ -1,5 +1,5 @@
 defmodule IntcodeComputer do
-  def run(program) do
+  def run(program, _input \\ nil) do
     process(0, program)
   end
 
@@ -15,9 +15,6 @@ defmodule IntcodeComputer do
       |> Enum.map(fn x -> if x == 0, do: :position_mode, else: :immediate_mode end)
       |> (fn x -> List.replace_at(x, Enum.count(x) - 1, :output_addr) end).()
 
-    #    IO.inspect(opcode, label: "opcode=")
-    #    IO.inspect(modes, label: "modes=")
-
     if opcode == 99 do
       program
     else
@@ -26,16 +23,7 @@ defmodule IntcodeComputer do
         |> Enum.zip(for i <- 1..num_params, do: Enum.at(program, instruction_pointer + i))
         |> Enum.map(fn x -> get_param_value(x, program) end)
 
-      #      IO.inspect(param_values, label: "param_values=")
-
-      result_addr = List.last(param_values)
-
-      new_program =
-        List.replace_at(
-          program,
-          result_addr,
-          calculate(opcode, param_values)
-        )
+      new_program = calculate(program, opcode, param_values)
 
       process(instruction_pointer + num_params + 1, new_program)
     end
@@ -53,14 +41,18 @@ defmodule IntcodeComputer do
     case opcode do
       1 -> 3
       2 -> 3
+      3 -> 1
+      4 -> 1
       99 -> 0
     end
   end
 
-  defp calculate(opcode, param_values) do
+  defp calculate(program, opcode, param_values) do
+    get_param = fn index -> Enum.at(param_values, index) end
+
     case opcode do
-      1 -> Enum.at(param_values, 0) + Enum.at(param_values, 1)
-      2 -> Enum.at(param_values, 0) * Enum.at(param_values, 1)
+      1 -> List.replace_at(program, get_param.(2), get_param.(0) + get_param.(1))
+      2 -> List.replace_at(program, get_param.(2), get_param.(0) * get_param.(1))
     end
   end
 end

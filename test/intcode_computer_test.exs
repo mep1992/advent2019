@@ -11,7 +11,7 @@ defmodule IntcodeComputerTest do
   end
 
   test "calculates correct result for two operation program with different parameter modes and negative numbers" do
-    assert IntcodeComputer.run([1101,100,-1,4,0]) == [1101,100,-1,4,99]
+    assert IntcodeComputer.run([1101, 100, -1, 4, 0]) == [1101, 100, -1, 4, 99]
   end
 
   test "calculates correct result for simple multiplication program" do
@@ -22,7 +22,15 @@ defmodule IntcodeComputerTest do
     assert IntcodeComputer.run([2, 4, 4, 5, 99, 0]) == [2, 4, 4, 5, 99, 9801]
   end
 
-  test "calculates correct result for two operation program" do
+  test "calculates correct result for addition and multiplication operation program" do
     assert IntcodeComputer.run([1, 1, 1, 4, 99, 5, 6, 0, 99]) == [30, 1, 1, 4, 2, 5, 6, 0, 99]
+  end
+
+  @tag :skip
+  test "calculates correct result for simple input program" do
+    assert IntcodeComputer.run([3, 0, 4, 0, 99], 1) == [
+             result_program: [30, 1, 1, 4, 2, 5, 6, 0, 99],
+             output: [1]
+           ]
   end
 end
