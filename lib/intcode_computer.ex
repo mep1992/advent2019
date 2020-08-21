@@ -16,7 +16,7 @@ defmodule IntcodeComputer do
   end
 
   defp parse_instruction(program, instruction_pointer) do
-    #    IO.puts("~~~~~~~~~~~~~~~~\n")
+    # IO.puts("~~~~~~~~~~~~~~~~\n")
     # IO.inspect(instruction_pointer, label: "instruction_pointer=")
     # IO.inspect(program, label: "program=")
 
@@ -76,7 +76,6 @@ defmodule IntcodeComputer do
   end
 
   defp calculate(program, opcode, param_values, input, output) do
-    # IO.inspect(output, label: "calc_output=")
     get_param = fn index -> Enum.at(param_values, index) end
 
     case opcode do
