@@ -3,6 +3,10 @@ defmodule Day5 do
     IntcodeComputer.run(get_input(), 1) |> elem(1)
   end
 
+  def part2() do
+    IntcodeComputer.run(get_input(), 5) |> elem(1)
+  end
+
   defp get_input do
     File.read!("lib/day5_input.txt")
     |> String.split(",")
@@ -12,3 +16,4 @@ end
 
 IO.puts("Day5 Output")
 IO.inspect(Day5.part1(), label: "part1", limit: :infinity)
+IO.inspect(Day5.part2(), label: "part2", limit: :infinity)
