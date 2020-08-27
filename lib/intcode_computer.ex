@@ -1,5 +1,5 @@
 defmodule Instruction do
-  defstruct type: nil, params: [], destination: nil, size: 0, opcode: nil
+  defstruct type: nil, params: [], destination: nil, size: 0
 end
 
 defmodule IntcodeComputer do
@@ -118,31 +118,31 @@ defmodule IntcodeComputer do
   defp get_instruction(opcode) do
     case opcode do
       1 ->
-        %Instruction{type: :plus, params: [1, 2], destination: 3, size: 4, opcode: 1}
+        %Instruction{type: :plus, params: [1, 2], destination: 3, size: 4}
 
       2 ->
-        %Instruction{type: :multiply, params: [1, 2], destination: 3, size: 4, opcode: 2}
+        %Instruction{type: :multiply, params: [1, 2], destination: 3, size: 4}
 
       3 ->
-        %Instruction{type: :input, params: [], destination: 1, size: 2, opcode: 3}
+        %Instruction{type: :input, params: [], destination: 1, size: 2}
 
       4 ->
-        %Instruction{type: :output, params: [1], destination: nil, size: 2, opcode: 4}
+        %Instruction{type: :output, params: [1], destination: nil, size: 2}
 
       5 ->
-        %Instruction{type: :jump_if_true, params: [1, 2], destination: nil, size: 3, opcode: 5}
+        %Instruction{type: :jump_if_true, params: [1, 2], destination: nil, size: 3}
 
       6 ->
-        %Instruction{type: :jump_if_false, params: [1, 2], destination: nil, size: 3, opcode: 6}
+        %Instruction{type: :jump_if_false, params: [1, 2], destination: nil, size: 3}
 
       7 ->
-        %Instruction{type: :less_than, params: [1, 2], destination: 3, size: 4, opcode: 7}
+        %Instruction{type: :less_than, params: [1, 2], destination: 3, size: 4}
 
       8 ->
-        %Instruction{type: :equals, params: [1, 2], destination: 3, size: 4, opcode: 8}
+        %Instruction{type: :equals, params: [1, 2], destination: 3, size: 4}
 
       99 ->
-        %Instruction{type: :halt, params: [], destination: nil, size: nil, opcode: 99}
+        %Instruction{type: :halt, params: [], destination: nil, size: nil}
     end
   end
 end
