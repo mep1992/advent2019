@@ -1,31 +1,54 @@
+defmodule Instruction do
+  defstruct type: nil, params: [], destination: nil, size: 0, opcode: nil
+end
+
 defmodule IntcodeComputer do
   def run(program, input \\ nil) do
     process(program, 0, input, [])
   end
 
   def process(program, instruction_pointer, input, output) do
-    {opcode, param_values, destination_addr, increment} =
-      parse_instruction(program, instruction_pointer)
+    instruction = parse_instruction(program, instruction_pointer)
+    get_param = fn index -> Enum.at(instruction.params, index) end
+    update_program = fn destination, val -> List.replace_at(program, destination, val) end
 
-    if opcode == 99 do
-      {program, output}
-    else
-      {new_program, new_output} =
-        calculate(program, opcode, param_values, destination_addr, input, output)
+    case instruction.type do
+      :plus ->
+        update_program.(instruction.destination, get_param.(0) + get_param.(1))
+        |> process(instruction_pointer + instruction.size, input, output)
 
-      process(new_program, instruction_pointer + increment, input, new_output)
+      :multiply ->
+        update_program.(instruction.destination, get_param.(0) * get_param.(1))
+        |> process(instruction_pointer + instruction.size, input, output)
+
+      :input ->
+        update_program.(instruction.destination, input)
+        |> process(instruction_pointer + instruction.size, input, output)
+
+      :output ->
+        process(program, instruction_pointer + instruction.size, input, output ++ [get_param.(0)])
+
+      :halt ->
+        {program, output}
     end
   end
 
   defp parse_instruction(program, instruction_pointer) do
     opcode = rem(Enum.at(program, instruction_pointer), 100)
 
-    {_op, params, raw_destination, increment} = parse_opcode(opcode)
-    num_params = Enum.count(params)
-    destination =
-      if raw_destination == nil,
-        do: nil,
-        else: Enum.at(program, instruction_pointer + raw_destination)
+    get_instruction(opcode)
+    |> update_destination(program, instruction_pointer)
+    |> update_param_values(program, instruction_pointer)
+  end
+
+  defp update_destination(instruction, program, instruction_pointer) do
+    update_in(instruction.destination, fn d ->
+      if d == nil, do: nil, else: Enum.at(program, instruction_pointer + instruction.destination)
+    end)
+  end
+
+  defp update_param_values(instruction, program, instruction_pointer) do
+    num_params = Enum.count(instruction.params)
 
     explicit_modes =
       Enum.at(program, instruction_pointer)
@@ -44,7 +67,7 @@ defmodule IntcodeComputer do
       |> Enum.zip(for i <- 1..num_params, do: Enum.at(program, instruction_pointer + i))
       |> Enum.map(fn x -> get_param_value(x, program) end)
 
-    {opcode, param_values, destination, increment}
+    put_in(instruction.params, param_values)
   end
 
   defp add_padding(list, desired_length) do
@@ -60,25 +83,13 @@ defmodule IntcodeComputer do
     end
   end
 
-  # return {name, relative_param_pos, relative_destination_pos, increment}
-  defp parse_opcode(opcode) do
+  defp get_instruction(opcode) do
     case opcode do
-      1 -> {:plus, [1, 2], 3, 4}
-      2 -> {:multiply, [1, 2], 3, 4}
-      3 -> {:input, [], 1, 2}
-      4 -> {:output, [1], nil, 2}
-      99 -> {:halt, [], nil, nil}
-    end
-  end
-
-  defp calculate(program, opcode, param_values, destination, input, output) do
-    get_param = fn index -> Enum.at(param_values, index) end
-
-    case opcode do
-      1 -> {List.replace_at(program, destination, get_param.(0) + get_param.(1)), output}
-      2 -> {List.replace_at(program, destination, get_param.(0) * get_param.(1)), output}
-      3 -> {List.replace_at(program, destination, input), output}
-      4 -> {program, output ++ [get_param.(0)]}
+      1 -> %Instruction{type: :plus, params: [1, 2], destination: 3, size: 4, opcode: 1}
+      2 -> %Instruction{type: :multiply, params: [1, 2], destination: 3, size: 4, opcode: 2}
+      3 -> %Instruction{type: :input, params: [], destination: 1, size: 2, opcode: 3}
+      4 -> %Instruction{type: :output, params: [1], destination: nil, size: 2, opcode: 4}
+      99 -> %Instruction{type: :halt, params: [], destination: nil, size: nil, opcode: 99}
     end
   end
 end
