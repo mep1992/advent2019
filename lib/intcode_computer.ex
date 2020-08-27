@@ -27,6 +27,20 @@ defmodule IntcodeComputer do
 
       :output ->
         process(program, instruction_pointer + instruction.size, input, output ++ [get_param.(0)])
+        
+      :jump_if_true ->
+        if get_param.(0) != 0 do
+          process(program, get_param.(1), input, output)
+        else
+          process(program, instruction_pointer + instruction.size, input, output)
+        end
+
+      :jump_if_false ->
+        if get_param.(0) == 0 do
+          process(program, get_param.(1), input, output)
+        else
+          process(program, instruction_pointer + instruction.size, input, output)
+        end
 
       :halt ->
         {program, output}
@@ -89,6 +103,8 @@ defmodule IntcodeComputer do
       2 -> %Instruction{type: :multiply, params: [1, 2], destination: 3, size: 4, opcode: 2}
       3 -> %Instruction{type: :input, params: [], destination: 1, size: 2, opcode: 3}
       4 -> %Instruction{type: :output, params: [1], destination: nil, size: 2, opcode: 4}
+      5 -> %Instruction{type: :jump_if_true, params: [1, 2], destination: nil, size: 3, opcode: 5}
+      6 -> %Instruction{type: :jump_if_false, params: [1, 2], destination: nil, size: 3, opcode: 6}
       99 -> %Instruction{type: :halt, params: [], destination: nil, size: nil, opcode: 99}
     end
   end
