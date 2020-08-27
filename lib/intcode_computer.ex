@@ -1,105 +1,47 @@
 defmodule Instruction do
-  defstruct type: nil, params: [], destination: nil, size: 0
-end
+  defstruct type: nil, params: [], destination: nil, next: 0
 
-defmodule IntcodeComputer do
-  def run(program, input \\ nil) do
-    process(program, 0, input, [])
-  end
-
-  def process(program, instruction_pointer, input, output) do
-    instruction = parse_instruction(program, instruction_pointer)
-    get_param = fn index -> Enum.at(instruction.params, index) end
-    update_program = fn destination, val -> List.replace_at(program, destination, val) end
-
-    case instruction.type do
-      :plus ->
-        update_program.(instruction.destination, get_param.(0) + get_param.(1))
-        |> process(instruction_pointer + instruction.size, input, output)
-
-      :multiply ->
-        update_program.(instruction.destination, get_param.(0) * get_param.(1))
-        |> process(instruction_pointer + instruction.size, input, output)
-
-      :input ->
-        update_program.(instruction.destination, input)
-        |> process(instruction_pointer + instruction.size, input, output)
-
-      :output ->
-        process(program, instruction_pointer + instruction.size, input, output ++ [get_param.(0)])
-
-      :jump_if_true ->
-        if get_param.(0) != 0 do
-          process(program, get_param.(1), input, output)
-        else
-          process(program, instruction_pointer + instruction.size, input, output)
-        end
-
-      :jump_if_false ->
-        if get_param.(0) == 0 do
-          process(program, get_param.(1), input, output)
-        else
-          process(program, instruction_pointer + instruction.size, input, output)
-        end
-
-      :less_than ->
-        if get_param.(0) < get_param.(1) do
-          update_program.(instruction.destination, 1)
-          |> process(instruction_pointer + instruction.size, input, output)
-        else
-          update_program.(instruction.destination, 0)
-          |> process(instruction_pointer + instruction.size, input, output)
-        end
-
-      :equals ->
-        if get_param.(0) == get_param.(1) do
-          update_program.(instruction.destination, 1)
-          |> process(instruction_pointer + instruction.size, input, output)
-        else
-          update_program.(instruction.destination, 0)
-          |> process(instruction_pointer + instruction.size, input, output)
-        end
-
-      :halt ->
-        {program, output}
-    end
-  end
-
-  defp parse_instruction(program, instruction_pointer) do
+  def create(program, instruction_pointer) do
     opcode = rem(Enum.at(program, instruction_pointer), 100)
 
-    get_instruction(opcode)
-    |> update_destination(program, instruction_pointer)
-    |> update_param_values(program, instruction_pointer)
+    {type, relative_params, relative_destination, size} = get_instruction_details(opcode)
+
+    %Instruction{
+      type: type,
+      params: get_params(program, instruction_pointer, relative_params),
+      destination: get_destination(program, instruction_pointer, relative_destination),
+      next: instruction_pointer + size
+    }
   end
 
-  defp update_destination(instruction, program, instruction_pointer) do
-    update_in(instruction.destination, fn d ->
-      if d == nil, do: nil, else: Enum.at(program, instruction_pointer + instruction.destination)
-    end)
-  end
+  # return {name, relative_params, relative_destination, size}
+  defp get_instruction_details(1), do: {:plus, [1, 2], 3, 4}
+  defp get_instruction_details(2), do: {:multiply, [1, 2], 3, 4}
+  defp get_instruction_details(3), do: {:input, [], 1, 2}
+  defp get_instruction_details(4), do: {:output, [1], nil, 2}
+  defp get_instruction_details(5), do: {:jump_if_true, [1, 2], nil, 3}
+  defp get_instruction_details(6), do: {:jump_if_false, [1, 2], nil, 3}
+  defp get_instruction_details(7), do: {:less_than, [1, 2], 3, 4}
+  defp get_instruction_details(8), do: {:equals, [1, 2], 3, 4}
+  defp get_instruction_details(99), do: {:halt, [], nil, 1}
 
-  defp update_param_values(instruction, program, instruction_pointer) do
-    num_params = Enum.count(instruction.params)
+  defp get_destination(_, _, nil), do: nil
 
-    explicit_modes =
-      Enum.at(program, instruction_pointer)
-      |> Integer.digits()
-      |> Enum.reverse()
-      |> List.delete_at(0)
-      |> List.delete_at(0)
+  defp get_destination(program, instruction_pointer, relative_destination),
+    do: Enum.at(program, instruction_pointer + relative_destination)
 
-    modes =
-      explicit_modes
-      |> add_padding(num_params)
-      |> Enum.map(fn x -> if x == 0, do: :position_mode, else: :immediate_mode end)
+  defp get_params(program, instruction_pointer, relative_params) do
+    num_params = Enum.count(relative_params)
 
-    param_values =
-      modes
-      |> Enum.zip(for i <- 1..num_params, do: Enum.at(program, instruction_pointer + i))
-      |> Enum.map(fn x -> get_param_value(x, program) end)
-
-    put_in(instruction.params, param_values)
+    Enum.at(program, instruction_pointer)
+    |> Integer.digits()
+    |> Enum.reverse()
+    |> List.delete_at(0)
+    |> List.delete_at(0)
+    |> add_padding(num_params)
+    |> Enum.map(fn x -> if x == 0, do: :position_mode, else: :immediate_mode end)
+    |> Enum.zip(for i <- 1..num_params, do: Enum.at(program, instruction_pointer + i))
+    |> Enum.map(fn x -> get_param_value(x, program) end)
   end
 
   defp add_padding(list, desired_length) do
@@ -108,41 +50,70 @@ defmodule IntcodeComputer do
       else: add_padding(list ++ [0], desired_length)
   end
 
-  defp get_param_value(mode_param_pair, program) do
-    case mode_param_pair do
-      {:position_mode, addr} -> Enum.at(program, addr)
-      {:immediate_mode, val} -> val
-    end
+  defp get_param_value({:position_mode, addr}, program), do: Enum.at(program, addr)
+  defp get_param_value({:immediate_mode, val}, _), do: val
+end
+
+defmodule IntcodeComputer do
+  def run(program, input \\ nil) do
+    process(program, 0, input, [])
   end
 
-  defp get_instruction(opcode) do
-    case opcode do
-      1 ->
-        %Instruction{type: :plus, params: [1, 2], destination: 3, size: 4}
+  def process(program, instruction_pointer, input, output) do
+    instruction = Instruction.create(program, instruction_pointer)
+    get_param = fn index -> Enum.at(instruction.params, index) end
+    update_program = fn destination, val -> List.replace_at(program, destination, val) end
 
-      2 ->
-        %Instruction{type: :multiply, params: [1, 2], destination: 3, size: 4}
+    case instruction.type do
+      :plus ->
+        update_program.(instruction.destination, get_param.(0) + get_param.(1))
+        |> process(instruction.next, input, output)
 
-      3 ->
-        %Instruction{type: :input, params: [], destination: 1, size: 2}
+      :multiply ->
+        update_program.(instruction.destination, get_param.(0) * get_param.(1))
+        |> process(instruction.next, input, output)
 
-      4 ->
-        %Instruction{type: :output, params: [1], destination: nil, size: 2}
+      :input ->
+        update_program.(instruction.destination, input)
+        |> process(instruction.next, input, output)
 
-      5 ->
-        %Instruction{type: :jump_if_true, params: [1, 2], destination: nil, size: 3}
+      :output ->
+        process(program, instruction.next, input, output ++ [get_param.(0)])
 
-      6 ->
-        %Instruction{type: :jump_if_false, params: [1, 2], destination: nil, size: 3}
+      :jump_if_true ->
+        if get_param.(0) != 0 do
+          process(program, get_param.(1), input, output)
+        else
+          process(program, instruction.next, input, output)
+        end
 
-      7 ->
-        %Instruction{type: :less_than, params: [1, 2], destination: 3, size: 4}
+      :jump_if_false ->
+        if get_param.(0) == 0 do
+          process(program, get_param.(1), input, output)
+        else
+          process(program, instruction.next, input, output)
+        end
 
-      8 ->
-        %Instruction{type: :equals, params: [1, 2], destination: 3, size: 4}
+      :less_than ->
+        if get_param.(0) < get_param.(1) do
+          update_program.(instruction.destination, 1)
+          |> process(instruction.next, input, output)
+        else
+          update_program.(instruction.destination, 0)
+          |> process(instruction.next, input, output)
+        end
 
-      99 ->
-        %Instruction{type: :halt, params: [], destination: nil, size: nil}
+      :equals ->
+        if get_param.(0) == get_param.(1) do
+          update_program.(instruction.destination, 1)
+          |> process(instruction.next, input, output)
+        else
+          update_program.(instruction.destination, 0)
+          |> process(instruction.next, input, output)
+        end
+
+      :halt ->
+        {program, output}
     end
   end
 end
