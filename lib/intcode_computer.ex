@@ -27,7 +27,7 @@ defmodule IntcodeComputer do
 
       :output ->
         process(program, instruction_pointer + instruction.size, input, output ++ [get_param.(0)])
-        
+
       :jump_if_true ->
         if get_param.(0) != 0 do
           process(program, get_param.(1), input, output)
@@ -40,6 +40,24 @@ defmodule IntcodeComputer do
           process(program, get_param.(1), input, output)
         else
           process(program, instruction_pointer + instruction.size, input, output)
+        end
+
+      :less_than ->
+        if get_param.(0) < get_param.(1) do
+          update_program.(instruction.destination, 1)
+          |> process(instruction_pointer + instruction.size, input, output)
+        else
+          update_program.(instruction.destination, 0)
+          |> process(instruction_pointer + instruction.size, input, output)
+        end
+
+      :equals ->
+        if get_param.(0) == get_param.(1) do
+          update_program.(instruction.destination, 1)
+          |> process(instruction_pointer + instruction.size, input, output)
+        else
+          update_program.(instruction.destination, 0)
+          |> process(instruction_pointer + instruction.size, input, output)
         end
 
       :halt ->
@@ -99,13 +117,32 @@ defmodule IntcodeComputer do
 
   defp get_instruction(opcode) do
     case opcode do
-      1 -> %Instruction{type: :plus, params: [1, 2], destination: 3, size: 4, opcode: 1}
-      2 -> %Instruction{type: :multiply, params: [1, 2], destination: 3, size: 4, opcode: 2}
-      3 -> %Instruction{type: :input, params: [], destination: 1, size: 2, opcode: 3}
-      4 -> %Instruction{type: :output, params: [1], destination: nil, size: 2, opcode: 4}
-      5 -> %Instruction{type: :jump_if_true, params: [1, 2], destination: nil, size: 3, opcode: 5}
-      6 -> %Instruction{type: :jump_if_false, params: [1, 2], destination: nil, size: 3, opcode: 6}
-      99 -> %Instruction{type: :halt, params: [], destination: nil, size: nil, opcode: 99}
+      1 ->
+        %Instruction{type: :plus, params: [1, 2], destination: 3, size: 4, opcode: 1}
+
+      2 ->
+        %Instruction{type: :multiply, params: [1, 2], destination: 3, size: 4, opcode: 2}
+
+      3 ->
+        %Instruction{type: :input, params: [], destination: 1, size: 2, opcode: 3}
+
+      4 ->
+        %Instruction{type: :output, params: [1], destination: nil, size: 2, opcode: 4}
+
+      5 ->
+        %Instruction{type: :jump_if_true, params: [1, 2], destination: nil, size: 3, opcode: 5}
+
+      6 ->
+        %Instruction{type: :jump_if_false, params: [1, 2], destination: nil, size: 3, opcode: 6}
+
+      7 ->
+        %Instruction{type: :less_than, params: [1, 2], destination: 3, size: 4, opcode: 7}
+
+      8 ->
+        %Instruction{type: :equals, params: [1, 2], destination: 3, size: 4, opcode: 8}
+
+      99 ->
+        %Instruction{type: :halt, params: [], destination: nil, size: nil, opcode: 99}
     end
   end
 end
